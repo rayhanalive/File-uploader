@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom File Uploader - Catbox Style</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            color: #333;
+            text-align: center;
+            margin: 0;
+            padding: 50px 20px;
+        }
+        .container {
+            background: #ffffff;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        p {
+            color: #666;
+            font-size: 14px;
+        }
+        .dropzone {
+            border: 2px dashed #007bff;
+            padding: 30px;
+            margin: 20px 0;
+            border-radius: 6px;
+            background: #f9f9f9;
+            cursor: pointer;
+        }
+        .dropzone:hover {
+            background: #f1f7ff;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #result {
+            margin-top: 20px;
+            word-break: break-all;
+            font-size: 14px;
+        }
+        .success-box {
+            background: #e2f0d9;
+            padding: 10px;
+            border: 1px solid #c8e6c9;
+            border-radius: 4px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>File Uploader</h1>
+        <p>সর্বোচ্চ ২০০ এমবি পর্যন্ত ফাইল আপলোড করতে পারবেন।</p>
+        
+        <form id="uploadForm">
+            <label for="fileInput" class="dropzone" id="dropZoneText">
+                ফাইল সিলেক্ট করতে এখানে ক্লিক করুন অথবা ড্রপ করুন
+            </label>
+            <input type="file" name="fileToUpload" id="fileInput" required>
+            <button type="submit" id="uploadBtn">আপলোড করুন</button>
+        </form>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const dropZoneText = document.getElementById('dropZoneText');
+        const uploadForm = document.getElementById('uploadForm');
+        const resultDiv = document.getElementById('result');
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) {
+                dropZoneText.innerText = `সিলিক্টেড ফাইল: ${fileInput.files[0].name}`;
+            }
+        });
+
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (fileInput.files.length === 0) return;
+
+            const formData = new FormData();
+            formData.append('fileToUpload', fileInput.files[0]);
+
+            resultDiv.innerHTML = '<p style="color: #007bff;">ফাইল আপলোড হচ্ছে, দয়া করে অপেক্ষা করুন...</p>';
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="success-box">
+                            <p style="margin:0 0 5px 0; color: #28a745; font-weight: bold;">সফলভাবে আপলোড সম্পন্ন হয়েছে!</p>
+                            ডিজেক্ট লিংক: <br><a href="${data.url}" target="_blank">${data.url}</a>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<p style="color: red;">ত্রুটি: ${data.error}</p>`;
+                }
+            } catch (err) {
+                resultDiv.innerHTML = '<p style="color: red;">সার্ভারের সাথে সংযোগ স্থাপন করা সম্ভব হয়নি!</p>';
+            }
+        });
+    </script>
+</body>
+</html>
